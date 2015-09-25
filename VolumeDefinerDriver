@@ -1,0 +1,62 @@
+package com.opensource.driver;
+
+
+
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.TextInputFormat;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.util.Tool;
+
+import com.opensource.mapper.VolumeDefinerMapper;
+import com.opensource.reducer.VolumeDefinerReducer;
+
+
+public class VolumeDefinerDriver extends Configured implements Tool{
+      public int run(String[] args) throws Exception
+      {
+		return 0;
+          
+      }
+     
+      public static void main(String[] args) throws Exception {
+    	    Configuration conf = new Configuration();
+    	    Job job = Job.getInstance(conf, "Volume Definer");
+    	    job.setJarByClass(VolumeDefinerDriver.class);
+    	    job.setMapperClass(VolumeDefinerMapper.class);
+    	  //  job.setCombinerClass(VolumeDefinerReducer.class);
+    	    job.setReducerClass(VolumeDefinerReducer.class);
+    	    job.setOutputKeyClass(Text.class);
+    	    job.setOutputValueClass(Text.class);
+    	    
+    	    job.setNumReduceTasks(1);
+    	    FileInputFormat.addInputPath(job, new Path(args[0]));
+    	    FileSystem fileSystem = FileSystem.get(conf);
+			fileSystem.delete(new Path(args[1]), true);
+    		
+			
+			BufferedReader br = new BufferedReader(new InputStreamReader(
+					new FileInputStream(new Path(args[0]).toString())));
+			String inputPaths = br.readLine();
+			
+			
+			
+    	    FileOutputFormat.setOutputPath(job, new Path(args[1]));
+    	    MultipleOutputs.addNamedOutput(job, "VolumeDefiner", TextOutputFormat.class,Text.class ,Text.class);
+    	   
+    	    System.exit(job.waitForCompletion(true) ? 0 : 1);
+    	  }
+}
