@@ -1,2 +1,2 @@
 # BigDataUtilities
-Big Data Utilities which will be helpful for processing data and so on very easy in lesser time
+Big Data Utilities helps the user to process various stages when deals with larger amount of  data
