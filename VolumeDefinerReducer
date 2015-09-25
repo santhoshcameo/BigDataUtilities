@@ -1,0 +1,63 @@
+package com.opensource.reducer;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.ContentSummary;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Reducer;
+
+public class VolumeDefinerReducer extends
+		Reducer<Text, Text, Text, IntWritable> {
+	private IntWritable result = new IntWritable();
+
+	int sum=0;
+	@Override
+	protected void setup(org.apache.hadoop.mapreduce.Reducer.Context context)
+			throws IOException, InterruptedException {
+		// TODO Auto-generated method stub
+
+		
+	}
+	@Override
+	protected void reduce(Text key, Iterable<Text> value, Context context)
+			throws IOException, InterruptedException {
+
+		//int sum = 0;
+		for (Text val : value) {
+
+		
+			double aDouble = Double.parseDouble(val.toString().replaceAll(" ","."));
+			
+			DecimalFormat df = new DecimalFormat("#.####");
+			System.out.println(" value :"+aDouble);
+			sum += aDouble;
+			
+			result.set(sum);
+			
+		}
+		
+		
+	}
+
+	
+	@Override
+	protected void cleanup(org.apache.hadoop.mapreduce.Reducer.Context context)
+			throws IOException, InterruptedException {
+		// TODO Auto-generated method stub
+		float totalSize=  (float) (sum/1e-9);
+	
+	
+		context.write(new Text("Total Size :"), totalSize+" GB");
+	
+		
+	}
+	
+	
+}
