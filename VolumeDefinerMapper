@@ -1,0 +1,85 @@
+package com.opensource.mapper;
+
+import java.awt.TextArea;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.util.StringTokenizer;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.ContentSummary;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.aspectj.org.eclipse.jdt.internal.compiler.impl.LongConstant;
+import org.aspectj.weaver.NewConstructorTypeMunger;
+
+public class VolumeDefinerMapper extends
+		Mapper<LongWritable, Text, Text, IntWritable> {
+
+	MultipleOutputs<Text, Text> mos;
+	@Override
+	protected void setup(org.apache.hadoop.mapreduce.Mapper.Context context)
+			throws IOException, InterruptedException {
+		mos = new MultipleOutputs(context);
+	}
+	@Override
+	protected void map(LongWritable key, Text value,
+			org.apache.hadoop.mapreduce.Mapper.Context context)
+			throws IOException, InterruptedException {
+		
+	
+		double fileSize=getflSize(value.toString());
+
+		System.out.println(" file size "+fileSize);
+		Double valInGB=  fileSize/1073741824;
+		
+		if (valInGB>1){
+			 double d = valInGB;
+		        DecimalFormat df = new DecimalFormat("#.####");
+		     
+		        mos.write("VolumeDefiner", value, new Text(df.format(d)+" GB"));
+		       
+		        context.write(value, new Text(String.valueOf(fileSize)));
+		}
+		else {
+			double valInMB= fileSize/(1048576);
+			 double d1 = valInMB;
+		        DecimalFormat df = new DecimalFormat("#.####");
+		        
+		      
+		        mos.write("VolumeDefiner", value, new Text(df.format(d1)+" MB"));
+		        context.write(value, new Text(String.valueOf(fileSize)));
+		}
+		
+		
+	}
+	
+	    public double getflSize(String args) throws IOException, FileNotFoundException
+	    {
+	        Configuration config = new Configuration();
+	        Path path = new Path(args);
+	        FileSystem hdfs = path.getFileSystem(config);
+	        ContentSummary cSummary = hdfs.getContentSummary(path);
+	        long length = cSummary.getLength();
+	        return  length;
+	    }
+	
+	    
+	    @Override
+	    protected void cleanup(org.apache.hadoop.mapreduce.Mapper.Context context)
+	    		throws IOException, InterruptedException {
+	    	// TODO Auto-generated method stub
+	    	
+	    	
+	    	mos.close();
+	    }
+
+}
